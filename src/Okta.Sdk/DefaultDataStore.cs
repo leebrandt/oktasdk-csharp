@@ -11,31 +11,27 @@ namespace Okta.Sdk
     {
         private readonly IRequestExecutor _requestExecutor;
         private readonly ISerializer _serializer;
-        private readonly IResourceFactory _resourceFactory;
 
         public DefaultDataStore(
             IRequestExecutor requestExecutor,
-            ISerializer serializer,
-            IResourceFactory resourceFactory)
+            ISerializer serializer)
         {
             _requestExecutor = requestExecutor ?? throw new ArgumentNullException(nameof(requestExecutor));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _resourceFactory = resourceFactory ?? throw new ArgumentNullException(nameof(resourceFactory));
         }
 
         public IRequestExecutor RequestExecutor => _requestExecutor;
 
         public ISerializer Serializer => _serializer;
 
-        public IResourceFactory ResourceFactory => _resourceFactory;
-
         public async Task<HttpResponse<IEnumerable<T>>> GetArrayAsync<T>(string href, CancellationToken cancellationToken)
+            where T : Resource, new()
         {
             var response = await _requestExecutor.GetAsync(href, cancellationToken);
 
             var resources = _serializer
                 .DeserializeArray(response.Payload)
-                .Select(x => _resourceFactory.Create<T>(x));
+                .Select(x => ResourceFactory.Create<T>(x));
 
             return new HttpResponse<IEnumerable<T>>
             {
@@ -46,16 +42,36 @@ namespace Okta.Sdk
         }
 
         public async Task<HttpResponse<T>> GetAsync<T>(string href, CancellationToken cancellationToken)
+            where T : Resource, new()
         {
             var response = await _requestExecutor.GetAsync(href, cancellationToken);
-            var map = _serializer.Deserialize(response.Payload);
-            var resource = _resourceFactory.Create<T>(map);
+            var data = _serializer.Deserialize(response.Payload);
+            var resource = ResourceFactory.Create<T>(data);
 
             return new HttpResponse<T>
             {
                 StatusCode = response.StatusCode,
                 Headers = response.Headers,
                 Payload = resource
+            };
+        }
+
+        public async Task<HttpResponse<TResponse>> PostAsync<TResponse>(string href, object postData, CancellationToken cancellationToken)
+            where TResponse : Resource, new()
+        {
+            var body = _serializer.Serialize(postData);
+            // TODO apply query string parameters
+
+            var response = await _requestExecutor.PostAsync(href, body, cancellationToken);
+
+            var returnedData = _serializer.Deserialize(response.Payload);
+            var returnedResource = ResourceFactory.Create<TResponse>(returnedData);
+
+            return new HttpResponse<TResponse>
+            {
+                StatusCode = response.StatusCode,
+                Headers = response.Headers,
+                Payload = returnedResource
             };
         }
     }

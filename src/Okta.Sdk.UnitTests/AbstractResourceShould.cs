@@ -9,7 +9,7 @@ namespace Okta.Sdk.UnitTests
 {
     public class AbstractResourceShould
     {
-        public class DummyResource : AbstractResource
+        public class DummyResource : Resource
         {
             public DummyResource(IReadOnlyDictionary<string, object> data, IResourceFactory resourceFactory)
                 : base(data, resourceFactory)

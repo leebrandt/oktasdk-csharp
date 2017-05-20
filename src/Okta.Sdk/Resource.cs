@@ -2,12 +2,12 @@
 
 namespace Okta.Sdk
 {
-    public abstract class AbstractResource
+    public class Resource
     {
         private IReadOnlyDictionary<string, object> _originalData;
         private Dictionary<string, object> _updatedData;
 
-        public AbstractResource()
+        public Resource()
         {
             _originalData = DictionaryFactory.NewCaseInsensitiveDictionary();
             ResetModifications();
@@ -50,12 +50,10 @@ namespace Okta.Sdk
         }
 
         public T GetProperty<T>(string key)
-            where T : AbstractResource, new()
+            where T : Resource, new()
         {
             var nestedData = GetProperty(key) as IReadOnlyDictionary<string, object>;
-            var model = new T();
-            model.ResetWithData(nestedData);
-            return model;
+            return ResourceFactory.Create<T>(nestedData);
         }
     }
 }

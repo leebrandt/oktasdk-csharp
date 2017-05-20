@@ -8,7 +8,7 @@ namespace Okta.Sdk.UnitTests
 {
     public class DefaultClientShould
     {
-        public class Test : AbstractResource
+        public class Test : Resource
         {
             public Test(IReadOnlyDictionary<string, object> data, IResourceFactory resourceFactory)
                 : base(data, resourceFactory)

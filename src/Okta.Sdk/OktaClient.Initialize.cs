@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Okta.Sdk
 {
-    public sealed partial class OktaClient
+    public partial class OktaClient
     {
         public OktaClient(ApiClientConfiguration apiClientConfiguration = null)
         {
